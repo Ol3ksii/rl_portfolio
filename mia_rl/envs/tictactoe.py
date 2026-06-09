@@ -62,7 +62,9 @@ class TicTacToeEnv(Environment[TicTacToeState, TicTacToeAction]):
         2. Set `self.current_player` to 1 (player X).
         3. Return the initial board state.
         """
-        raise NotImplementedError("TODO: implement reset.")
+        self.board = (0,) * 9
+        self.current_player = 1
+        return self.board
 
     def available_actions(self, state: TicTacToeState) -> list[TicTacToeAction]:
         """Return the indices of all empty cells in `state`.
@@ -70,7 +72,7 @@ class TicTacToeEnv(Environment[TicTacToeState, TicTacToeAction]):
         TODO:
         1. Return a list of all cell indices i where state[i] == 0.
         """
-        raise NotImplementedError("TODO: implement available_actions.")
+        return [i for i, val in enumerate(state) if val == 0]
 
     def is_terminal(self, state: TicTacToeState) -> bool:
         """Return True if the game is over (win or draw).
@@ -79,7 +81,7 @@ class TicTacToeEnv(Environment[TicTacToeState, TicTacToeAction]):
         1. Use `_winner(state)` to check if any player has won.
         2. Also return True if there are no empty cells left (draw).
         """
-        raise NotImplementedError("TODO: implement is_terminal.")
+        return _winner(state) != 0 or 0 not in state
 
     def step(self, action: TicTacToeAction) -> tuple[TicTacToeState, float, bool]:
         """Place the current player's mark on cell `action` and advance the game.
@@ -98,7 +100,21 @@ class TicTacToeEnv(Environment[TicTacToeState, TicTacToeAction]):
         7. Update `self.board` to the new board.
         8. Return `(new_board, reward, done)`.
         """
-        raise NotImplementedError("TODO: implement step.")
+        if self.board[action] != 0:
+            raise ValueError("Illegal move: cell is not empty.")
+            
+        board_list = list(self.board)
+        board_list[action] = self.current_player
+        new_board = tuple(board_list)
+        
+        winner = _winner(new_board)
+        done = winner != 0 or 0 not in new_board
+        reward = 1.0 if winner == self.current_player else 0.0
+        
+        self.current_player *= -1
+        self.board = new_board
+        
+        return new_board, reward, done
 
     def render(self, state: TicTacToeState | None = None) -> None:
         """Print a human-readable board to stdout.
@@ -111,10 +127,26 @@ class TicTacToeEnv(Environment[TicTacToeState, TicTacToeAction]):
         3. Print three rows separated by a '---+---+---' divider.
            Example output for an empty board:
 
-                1 | 2 | 3
-               ---+---+---
-                4 | 5 | 6
-               ---+---+---
-                7 | 8 | 9
+            1 | 2 | 3
+           ---+---+---
+            4 | 5 | 6
+           ---+---+---
+            7 | 8 | 9
         """
-        raise NotImplementedError("TODO: implement render.")
+        if state is None:
+            state = self.board
+            
+        chars = []
+        for i, val in enumerate(state):
+            if val == 1:
+                chars.append("X")
+            elif val == -1:
+                chars.append("O")
+            else:
+                chars.append(str(i + 1))
+                
+        print(f" {chars[0]} | {chars[1]} | {chars[2]} ")
+        print("---+---+---")
+        print(f" {chars[3]} | {chars[4]} | {chars[5]} ")
+        print("---+---+---")
+        print(f" {chars[6]} | {chars[7]} | {chars[8]} ")
